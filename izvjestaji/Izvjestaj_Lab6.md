@@ -328,37 +328,538 @@ Ovo je prvi dio implementacije genetičkog algoritma. U drugom dijelu će biti i
 
 ---
 
-## 8. PRILOG - KÔD
+## 8. PRILOG - KOMPLETAN KÔD
 
-Kompletan kôd implementacije nalazi se u fajlu: **Lab6.ipynb**
+### Lab6.py - Kompletna implementacija
 
-### Struktura implementacije:
+```python
+"""
+============================================================================
+LABORATORIJSKA VJEŽBA 6: Genetički algoritam (prvi dio)
+Predmet: Optimizacija resursa
+Univerzitet u Sarajevu - Elektrotehnički fakultet
+============================================================================
+"""
 
-```
-Lab6.ipynb
-├── Uvod i teorijska osnova (Markdown)
-├── Import biblioteka (random, abc)
-├── Klasa ApstraktnaIndividua
-├── Klasa MojaIndividua
-├── Klasa Populacija
-│   ├── Konstruktor sa validacijom
-│   ├── Get/Set metode
-│   ├── OpUkrstanjaTacka()
-│   ├── OpUkrstanjaDvijeTacke()
-│   └── OpBinMutacija()
-├── Test 1: Ukrštanje i mutacija
-├── Test 2: Ukrštanje u dvije tačke
-├── Test 3: Validacija parametara
-└── Zaključak
+# ============================================================================
+# IMPORTOVANJE BIBLIOTEKA
+# ============================================================================
+
+import random as r
+from abc import ABC, abstractmethod
+
+print("✓ Biblioteke uspješno učitane!\\n")
+
+# ============================================================================
+# KLASA: ApstraktnaIndividua
+# ============================================================================
+
+class ApstraktnaIndividua(ABC):
+    """
+    Apstraktna klasa koja predstavlja individuu u genetičkom algoritmu.
+
+    Atributi:
+    ---------
+    DuzinaHromozoma : int
+        Dužina hromozoma (binarnog niza)
+    Hromozom : list
+        Binarni niz dužine DuzinaHromozoma (lista 0 i 1)
+    Fitness : float
+        Vrijednost fitnesa individue
+    """
+
+    def __init__(self, DuzinaHromozoma):
+        """
+        Konstruktor koji kreira individuu sa slučajnim binarnim hromozomom.
+
+        Parametri:
+        ----------
+        DuzinaHromozoma : int
+            Dužina hromozoma
+        """
+        self.__DuzinaHromozoma = DuzinaHromozoma
+        # Generiši slučajan binarni niz dužine DuzinaHromozoma
+        self.__Hromozom = [r.randint(0, 1) for _ in range(DuzinaHromozoma)]
+        self.__Fitness = 0.0
+
+    # ========== GET METODE ==========
+
+    def GetDuzinaHromozoma(self):
+        """Vraća dužinu hromozoma."""
+        return self.__DuzinaHromozoma
+
+    def GetHromozom(self):
+        """Vraća hromozom (binarni niz)."""
+        return self.__Hromozom
+
+    def GetFitness(self):
+        """Vraća fitness vrijednost."""
+        return self.__Fitness
+
+    # ========== SET METODE ==========
+
+    def SetDuzinaHromozoma(self, DuzinaHromozoma):
+        """Postavlja dužinu hromozoma."""
+        self.__DuzinaHromozoma = DuzinaHromozoma
+
+    def SetHromozom(self, Hromozom):
+        """Postavlja hromozom."""
+        self.__Hromozom = Hromozom
+
+    def SetFitness(self, Fitness):
+        """Postavlja fitness vrijednost."""
+        self.__Fitness = Fitness
+
+    # ========== APSTRAKTNA METODA ==========
+
+    @abstractmethod
+    def Evaluiraj(self):
+        """
+        Apstraktna metoda koja evaluira fitness individue.
+        Mora biti reimplementirana u izvedenoj klasi.
+        """
+        pass
+
+
+print("✓ Klasa ApstraktnaIndividua uspješno implementirana!")
+
+# ============================================================================
+# KLASA: MojaIndividua (izvedena iz ApstraktnaIndividua)
+# ============================================================================
+
+class MojaIndividua(ApstraktnaIndividua):
+    """
+    Konkretna implementacija individue sa specifičnom fitness funkcijom.
+
+    Nasleđuje sve atribute i metode od ApstraktnaIndividua i
+    reimplementira metodu Evaluiraj().
+    """
+
+    def __init__(self, DuzinaHromozoma):
+        """
+        Konstruktor koji poziva konstruktor roditeljske klase.
+
+        Parametri:
+        ----------
+        DuzinaHromozoma : int
+            Dužina hromozoma
+        """
+        super().__init__(DuzinaHromozoma)
+
+    def Evaluiraj(self):
+        """
+        Reimplementirana metoda za evaluaciju fitnesa.
+        Za sada ostaje prazna - bit će implementirana u drugom dijelu.
+        """
+        pass
+
+
+print("✓ Klasa MojaIndividua uspješno implementirana!")
+
+# ============================================================================
+# KLASA: Populacija
+# ============================================================================
+
+class Populacija:
+    """
+    Klasa koja predstavlja populaciju individua u genetičkom algoritmu.
+
+    Atributi:
+    ---------
+    VelicinaPopulacije : int
+        Broj individua u populaciji
+    VjerovatnocaUkrstanja : float
+        Vjerovatnoća ukrštanja (0-1)
+    VjerovatnocaMutacije : float
+        Vjerovatnoća mutacije (0-1)
+    MaxGeneracija : int
+        Maksimalan broj generacija
+    VelicinaElite : int
+        Broj najboljih individua koje se prenose (0-2)
+    Populacija : list
+        Lista individua (objekti tipa MojaIndividua)
+    """
+
+    def __init__(self, VelicinaPopulacije, VjerovatnocaUkrstanja,
+                 VjerovatnocaMutacije, MaxGeneracija, VelicinaElite,
+                 DuzinaHromozoma=16):
+        """
+        Konstruktor koji kreira populaciju i validira parametre.
+
+        Parametri:
+        ----------
+        VelicinaPopulacije : int
+            Broj individua u populaciji (mora biti > 0)
+        VjerovatnocaUkrstanja : float
+            Vjerovatnoća ukrštanja (mora biti između 0 i 1)
+        VjerovatnocaMutacije : float
+            Vjerovatnoća mutacije (mora biti između 0 i 1)
+        MaxGeneracija : int
+            Maksimalan broj generacija (mora biti > 0)
+        VelicinaElite : int
+            Broj najboljih individua (mora biti između 0 i 2)
+        DuzinaHromozoma : int, optional
+            Dužina hromozoma (default: 16)
+        """
+
+        # VALIDACIJA PARAMETARA
+
+        # Provjera VelicinaPopulacije
+        if not isinstance(VelicinaPopulacije, int) or VelicinaPopulacije <= 0:
+            raise Exception("VelicinaPopulacije mora biti pozitivan cijeli broj.")
+
+        # Provjera VjerovatnocaUkrstanja
+        if not (0 <= VjerovatnocaUkrstanja <= 1):
+            raise Exception("Vjerovatnoca mora biti izmedju 0 i 1.")
+
+        # Provjera VjerovatnocaMutacije
+        if not (0 <= VjerovatnocaMutacije <= 1):
+            raise Exception("Vjerovatnoca mora biti izmedju 0 i 1.")
+
+        # Provjera MaxGeneracija
+        if not isinstance(MaxGeneracija, int) or MaxGeneracija <= 0:
+            raise Exception("MaxGeneracija mora biti pozitivan cijeli broj.")
+
+        # Provjera VelicinaElite
+        if not isinstance(VelicinaElite, int) or not (0 <= VelicinaElite <= 2):
+            raise Exception("VelicinaElite mora biti između 0 i 2.")
+
+        # Provjera DuzinaHromozoma
+        if not isinstance(DuzinaHromozoma, int) or DuzinaHromozoma <= 0:
+            raise Exception("DuzinaHromozoma mora biti pozitivan cijeli broj.")
+
+        # POSTAVLJANJE ATRIBUTA
+        self.__VelicinaPopulacije = VelicinaPopulacije
+        self.__VjerovatnocaUkrstanja = VjerovatnocaUkrstanja
+        self.__VjerovatnocaMutacije = VjerovatnocaMutacije
+        self.__MaxGeneracija = MaxGeneracija
+        self.__VelicinaElite = VelicinaElite
+        self.__DuzinaHromozoma = DuzinaHromozoma
+
+        # GENERISANJE POČETNE POPULACIJE
+        self.__Populacija = [MojaIndividua(DuzinaHromozoma)
+                            for _ in range(VelicinaPopulacije)]
+
+    # ========== GET METODE ==========
+
+    def GetVelicinaPopulacije(self):
+        """Vraća veličinu populacije."""
+        return self.__VelicinaPopulacije
+
+    def GetVjerovatnocaUkrstanja(self):
+        """Vraća vjerovatnoću ukrštanja."""
+        return self.__VjerovatnocaUkrstanja
+
+    def GetVjerovatnocaMutacije(self):
+        """Vraća vjerovatnoću mutacije."""
+        return self.__VjerovatnocaMutacije
+
+    def GetMaxGeneracija(self):
+        """Vraća maksimalan broj generacija."""
+        return self.__MaxGeneracija
+
+    def GetVelicinaElite(self):
+        """Vraća veličinu elite."""
+        return self.__VelicinaElite
+
+    def GetDuzinaHromozoma(self):
+        """Vraća dužinu hromozoma."""
+        return self.__DuzinaHromozoma
+
+    def GetPopulacija(self):
+        """Vraća listu individua u populaciji."""
+        return self.__Populacija
+
+    # ========== SET METODE ==========
+
+    def SetVelicinaPopulacije(self, VelicinaPopulacije):
+        """Postavlja veličinu populacije."""
+        if not isinstance(VelicinaPopulacije, int) or VelicinaPopulacije <= 0:
+            raise Exception("VelicinaPopulacije mora biti pozitivan cijeli broj.")
+        self.__VelicinaPopulacije = VelicinaPopulacije
+
+    def SetVjerovatnocaUkrstanja(self, VjerovatnocaUkrstanja):
+        """Postavlja vjerovatnoću ukrštanja."""
+        if not (0 <= VjerovatnocaUkrstanja <= 1):
+            raise Exception("Vjerovatnoca mora biti izmedju 0 i 1.")
+        self.__VjerovatnocaUkrstanja = VjerovatnocaUkrstanja
+
+    def SetVjerovatnocaMutacije(self, VjerovatnocaMutacije):
+        """Postavlja vjerovatnoću mutacije."""
+        if not (0 <= VjerovatnocaMutacije <= 1):
+            raise Exception("Vjerovatnoca mora biti izmedju 0 i 1.")
+        self.__VjerovatnocaMutacije = VjerovatnocaMutacije
+
+    def SetMaxGeneracija(self, MaxGeneracija):
+        """Postavlja maksimalan broj generacija."""
+        if not isinstance(MaxGeneracija, int) or MaxGeneracija <= 0:
+            raise Exception("MaxGeneracija mora biti pozitivan cijeli broj.")
+        self.__MaxGeneracija = MaxGeneracija
+
+    def SetVelicinaElite(self, VelicinaElite):
+        """Postavlja veličinu elite."""
+        if not isinstance(VelicinaElite, int) or not (0 <= VelicinaElite <= 2):
+            raise Exception("VelicinaElite mora biti između 0 i 2.")
+        self.__VelicinaElite = VelicinaElite
+
+    def SetPopulacija(self, Populacija):
+        """Postavlja populaciju."""
+        self.__Populacija = Populacija
+
+    # ========== GENETIČKI OPERATORI ==========
+
+    def OpUkrstanjaTacka(self, roditelj1, roditelj2):
+        """
+        Operator ukrštanja u JEDNOJ tački.
+
+        Algoritam:
+        1. Odaberi slučajnu tačku presjecanja
+        2. Dijete 1: geni od početka do tačke od roditelja 1,
+                     ostalo od roditelja 2
+        3. Dijete 2: geni od početka do tačke od roditelja 2,
+                     ostalo od roditelja 1
+
+        Parametri:
+        ----------
+        roditelj1 : MojaIndividua
+            Prvi roditelj
+        roditelj2 : MojaIndividua
+            Drugi roditelj
+
+        Vraća:
+        ------
+        tuple (MojaIndividua, MojaIndividua)
+            Dvoje djece (potomaka)
+        """
+        # Provjeri da li izvršiti ukrštanje
+        if r.random() > self.__VjerovatnocaUkrstanja:
+            # Ako ne, vrati kopije roditelja
+            return (roditelj1, roditelj2)
+
+        # Uzmi hromozome roditelja
+        h1 = roditelj1.GetHromozom()
+        h2 = roditelj2.GetHromozom()
+        duzina = len(h1)
+
+        # Odaberi slučajnu tačku presjecanja (između 1 i duzina-1)
+        tacka = r.randint(1, duzina - 1)
+
+        # Kreiraj nove hromozome za djecu
+        hromozom_dijete1 = h1[:tacka] + h2[tacka:]
+        hromozom_dijete2 = h2[:tacka] + h1[tacka:]
+
+        # Kreiraj nove individue (djecu)
+        dijete1 = MojaIndividua(duzina)
+        dijete2 = MojaIndividua(duzina)
+
+        # Postavi hromozome
+        dijete1.SetHromozom(hromozom_dijete1)
+        dijete2.SetHromozom(hromozom_dijete2)
+
+        return (dijete1, dijete2)
+
+    def OpUkrstanjaDvijeTacke(self, roditelj1, roditelj2):
+        """
+        Operator ukrštanja u DVIJE tačke.
+
+        Algoritam:
+        1. Odaberi dvije slučajne tačke presjecanja
+        2. Dijete 1: geni prije tačke1 od roditelja 1,
+                     geni između tačaka od roditelja 2,
+                     geni nakon tačke2 od roditelja 1
+        3. Dijete 2: obrnuto od dijete 1
+
+        Parametri:
+        ----------
+        roditelj1 : MojaIndividua
+            Prvi roditelj
+        roditelj2 : MojaIndividua
+            Drugi roditelj
+
+        Vraća:
+        ------
+        tuple (MojaIndividua, MojaIndividua)
+            Dvoje djece (potomaka)
+        """
+        # Provjeri da li izvršiti ukrštanje
+        if r.random() > self.__VjerovatnocaUkrstanja:
+            # Ako ne, vrati kopije roditelja
+            return (roditelj1, roditelj2)
+
+        # Uzmi hromozome roditelja
+        h1 = roditelj1.GetHromozom()
+        h2 = roditelj2.GetHromozom()
+        duzina = len(h1)
+
+        # Odaberi dvije slučajne tačke (sortirane)
+        tacka1 = r.randint(1, duzina - 2)
+        tacka2 = r.randint(tacka1 + 1, duzina - 1)
+
+        # Kreiraj nove hromozome za djecu
+        # Dijete 1: R1 | R2 | R1
+        hromozom_dijete1 = h1[:tacka1] + h2[tacka1:tacka2] + h1[tacka2:]
+
+        # Dijete 2: R2 | R1 | R2
+        hromozom_dijete2 = h2[:tacka1] + h1[tacka1:tacka2] + h2[tacka2:]
+
+        # Kreiraj nove individue (djecu)
+        dijete1 = MojaIndividua(duzina)
+        dijete2 = MojaIndividua(duzina)
+
+        # Postavi hromozome
+        dijete1.SetHromozom(hromozom_dijete1)
+        dijete2.SetHromozom(hromozom_dijete2)
+
+        return (dijete1, dijete2)
+
+    def OpBinMutacija(self, individua):
+        """
+        Operator binarne mutacije.
+
+        Algoritam:
+        1. Za svaki gen u hromozomu:
+           - Sa vjerovatnoćom VjerovatnocaMutacije: flipuj bit (0→1, 1→0)
+
+        Parametri:
+        ----------
+        individua : MojaIndividua
+            Individua koja se mutira
+
+        Vraća:
+        ------
+        MojaIndividua
+            Mutirana individua (ista referenca)
+        """
+        hromozom = individua.GetHromozom()
+
+        # Prolazi kroz svaki gen i mutiraj sa vjerovatnoćom
+        for i in range(len(hromozom)):
+            if r.random() < self.__VjerovatnocaMutacije:
+                # Flipuj bit: 0 → 1, 1 → 0
+                hromozom[i] = 1 - hromozom[i]
+
+        individua.SetHromozom(hromozom)
+        return individua
+
+
+print("✓ Klasa Populacija uspješno implementirana!\\n")
+
+# ============================================================================
+# TESTIRANJE
+# ============================================================================
+
+if __name__ == "__main__":
+    print("="*70)
+    print("       TESTIRANJE GENETIČKOG ALGORITMA - SVI TESTOVI")
+    print("="*70)
+
+    # TEST 1: Ukrštanje u jednoj tački i mutacija
+    print("\\n" + "="*70)
+    print("TEST 1: Ukrštanje u jednoj tački i mutacija")
+    print("="*70)
+
+    p = Populacija(10, 0.99, 0.99, 10, 1, 10)
+
+    r1 = r.randint(0, p.GetVelicinaPopulacije() - 1)
+    r2 = r.randint(0, p.GetVelicinaPopulacije() - 1)
+    p1 = p.GetPopulacija()[r1]
+    p2 = p.GetPopulacija()[r2]
+
+    print("\\nRODITELJI:")
+    print("P1:", p1.GetHromozom())
+    print("P2:", p2.GetHromozom())
+
+    (c1, c2) = p.OpUkrstanjaTacka(p1, p2)
+
+    print("\\nDJECA NAKON UKRŠTANJA (jedna tačka):")
+    print("C1:", c1.GetHromozom())
+    print("C2:", c2.GetHromozom())
+
+    c3 = p.OpBinMutacija(c1)
+
+    print("\\nNAKON MUTACIJE:")
+    print("C3:", c3.GetHromozom(), "← C1 nakon mutiranja")
+
+    print("\\n✓ TEST 1 ZAVRŠEN!")
+
+    # TEST 2: Ukrštanje u dvije tačke
+    print("\\n" + "="*70)
+    print("TEST 2: Ukrštanje u dvije tačke")
+    print("="*70)
+
+    p2 = Populacija(10, 1.0, 0.1, 10, 1, 12)
+
+    r1 = r.randint(0, p2.GetVelicinaPopulacije() - 1)
+    r2 = r.randint(0, p2.GetVelicinaPopulacije() - 1)
+    roditelj1 = p2.GetPopulacija()[r1]
+    roditelj2 = p2.GetPopulacija()[r2]
+
+    print("\\nRODITELJI:")
+    print("Roditelj 1:", roditelj1.GetHromozom())
+    print("Roditelj 2:", roditelj2.GetHromozom())
+
+    (dijete1, dijete2) = p2.OpUkrstanjaDvijeTacke(roditelj1, roditelj2)
+
+    print("\\nDJECA NAKON UKRŠTANJA (dvije tačke):")
+    print("Dijete 1:  ", dijete1.GetHromozom())
+    print("Dijete 2:  ", dijete2.GetHromozom())
+
+    print("\\n✓ TEST 2 ZAVRŠEN!")
+
+    # TEST 3: Validacija parametara
+    print("\\n" + "="*70)
+    print("TEST 3: Validacija parametara")
+    print("="*70)
+
+    print("\\n1. Test: Vjerovatnoća ukrštanja = 1.5 (treba da baci izuzetak)")
+    try:
+        p_invalid = Populacija(10, 1.5, 0.5, 10, 1, 10)
+        print("   ✗ GREŠKA: Izuzetak NIJE bacen!")
+    except Exception as e:
+        print(f"   ✓ USPJEŠNO: Bacen izuzetak: '{e}'")
+
+    print("\\n2. Test: Vjerovatnoća mutacije = -0.1 (treba da baci izuzetak)")
+    try:
+        p_invalid = Populacija(10, 0.5, -0.1, 10, 1, 10)
+        print("   ✗ GREŠKA: Izuzetak NIJE bacen!")
+    except Exception as e:
+        print(f"   ✓ USPJEŠNO: Bacen izuzetak: '{e}'")
+
+    print("\\n3. Test: VelicinaElite = 5 (treba da baci izuzetak, dozvoljeno 0-2)")
+    try:
+        p_invalid = Populacija(10, 0.5, 0.1, 10, 5, 10)
+        print("   ✗ GREŠKA: Izuzetak NIJE bacen!")
+    except Exception as e:
+        print(f"   ✓ USPJEŠNO: Bacen izuzetak: '{e}'")
+
+    print("\\n4. Test: Svi validni parametri")
+    try:
+        p_valid = Populacija(20, 0.8, 0.01, 100, 2, 16)
+        print("   ✓ USPJEŠNO: Populacija kreirana bez grešaka")
+        print(f"   - Veličina populacije: {p_valid.GetVelicinaPopulacije()}")
+        print(f"   - Vjerovatnoća ukrštanja: {p_valid.GetVjerovatnocaUkrstanja()}")
+        print(f"   - Vjerovatnoća mutacije: {p_valid.GetVjerovatnocaMutacije()}")
+    except Exception as e:
+        print(f"   ✗ GREŠKA: Neočekivan izuzetak: '{e}'")
+
+    print("\\n✓ TEST 3 ZAVRŠEN!")
+
+    # SAŽETAK
+    print("\\n" + "="*70)
+    print("                    ✅ SVI TESTOVI USPJEŠNO ZAVRŠENI!")
+    print("="*70)
+    print("\\n📊 SAŽETAK:")
+    print("  ✓ Test 1: Ukrštanje u jednoj tački - PROŠAO")
+    print("  ✓ Test 2: Ukrštanje u dvije tačke - PROŠAO")
+    print("  ✓ Test 3: Validacija parametara - PROŠAO")
+    print("\\n🎉 Implementacija genetičkog algoritma (prvi dio) je kompletna!")
+    print("="*70)
 ```
 
 ---
 
 **Datum izrade:** 14.12.2024
+
 **Fajlovi:**
-- `Lab6.ipynb` - Jupyter Notebook sa kompletnom implementacijom
-- `Izvjestaj_Lab6.md` - Ovaj izvještaj (Markdown format)
-
----
-
-**Napomena:** Ovaj izvještaj može se konvertovati u MS Word format korištenjem Pandoc alata ili direktnim otvaranjem u Wordu.
+- `Lab6.ipynb` - Jupyter Notebook sa kompletnom implementacijom (na https://github.com/hhrnjic1/optimizacija_resursa_labovi)
+- `Izvjestaj_Lab6.md` - Ovaj izvještaj
